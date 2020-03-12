@@ -432,11 +432,7 @@ export default function LayerConfiguratorFactory(SourceDataSelector) {
               {...layerChannelConfigProps}
             />
             <ConfigGroupCollapsibleContent>
-              <VisConfigSlider
-                {...LAYER_VIS_CONFIGS.elevationScale}
-                {...visConfiguratorProps}
-                labl="Zoom scale"
-              />
+              <VisConfigSlider {...LAYER_VIS_CONFIGS.elevationScale} {...visConfiguratorProps} />
               <VisConfigSlider
                 {...LAYER_VIS_CONFIGS.elevationRange}
                 {...visConfiguratorProps}
@@ -775,6 +771,10 @@ export default function LayerConfiguratorFactory(SourceDataSelector) {
       layerConfiguratorProps,
       layerChannelConfigProps
     }) {
+      const {
+        config: {visConfig}
+      } = layer;
+
       return (
         <StyledLayerVisualConfigurator>
           {/* Color */}
@@ -798,21 +798,22 @@ export default function LayerConfiguratorFactory(SourceDataSelector) {
             </ConfigGroupCollapsibleContent>
           </LayerConfigGroup>
 
-          <LayerConfigGroup {...LAYER_VIS_CONFIGS.enable3d} {...visConfiguratorProps} collapsible>
-            <ChannelByValueSelector
-              channel={layer.visualChannels.size}
-              {...layerChannelConfigProps}
+          {/* Elevation */}
+          <LayerConfigGroup
+            {...visConfiguratorProps}
+            {...LAYER_VIS_CONFIGS.enable3d}
+            disabled={!visConfig.filled}
+            collapsible
+          >
+            <VisConfigSlider
+              {...LAYER_VIS_CONFIGS.elevationScale}
+              {...visConfiguratorProps}
+              label={false}
             />
             <ConfigGroupCollapsibleContent>
-              <VisConfigSlider
-                {...LAYER_VIS_CONFIGS.elevationScale}
-                {...visConfiguratorProps}
-                labl="Zoom scale"
-              />
-              <VisConfigSlider
-                {...LAYER_VIS_CONFIGS.elevationRange}
-                {...visConfiguratorProps}
-                label="Height Range"
+              <ChannelByValueSelector
+                channel={layer.visualChannels.height}
+                {...layerChannelConfigProps}
               />
               <VisConfigSwitch {...visConfiguratorProps} {...LAYER_VIS_CONFIGS.wireframe} />
             </ConfigGroupCollapsibleContent>

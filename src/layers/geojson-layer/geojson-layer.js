@@ -120,7 +120,7 @@ export default class GeoJsonLayer extends Layer {
         domain: 'heightDomain',
         range: 'heightRange',
         key: 'height',
-        channelScaleType: 'size',
+        channelScaleType: CHANNEL_SCALES.size,
         condition: config => config.visConfig.enable3d
       },
       radius: {
@@ -130,7 +130,7 @@ export default class GeoJsonLayer extends Layer {
         domain: 'radiusDomain',
         range: 'radiusRange',
         key: 'radius',
-        channelScaleType: 'radius'
+        channelScaleType: CHANNEL_SCALES.radius
       }
     };
   }

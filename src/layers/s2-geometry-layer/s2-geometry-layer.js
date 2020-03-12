@@ -20,7 +20,7 @@
 
 import {S2Layer} from '@deck.gl/geo-layers';
 import {hexToRgb} from 'utils/color-utils';
-import {HIGHLIGH_COLOR_3D, DEFAULT_ELEVATION} from 'constants/default-settings';
+import {HIGHLIGH_COLOR_3D, DEFAULT_ELEVATION, CHANNEL_SCALES} from 'constants/default-settings';
 import Layer from '../base-layer';
 import S2LayerIcon from './s2-layer-icon';
 import {getS2Center} from './s2-utils';
@@ -45,8 +45,8 @@ export const S2VisConfigs = {
 
   // height
   enable3d: 'enable3d',
-  sizeRange: 'elevationRange',
   elevationScale: 'elevationScale',
+  heightRange: 'elevationRange',
 
   // wireframe
   wireframe: 'wireframe'
@@ -77,11 +77,37 @@ export default class S2GeometryLayer extends Layer {
 
   get visualChannels() {
     return {
-      ...super.visualChannels,
-      size: {
-        ...super.visualChannels.size,
-        property: 'height'
+      color: {
+        property: 'color',
+        field: 'colorField',
+        scale: 'colorScale',
+        domain: 'colorDomain',
+        range: 'colorRange',
+        key: 'color',
+        channelScaleType: CHANNEL_SCALES.color
+      },
+      height: {
+        property: 'height',
+        field: 'heightField',
+        scale: 'heightScale',
+        domain: 'heightDomain',
+        range: 'heightRange',
+        key: 'height',
+        channelScaleType: CHANNEL_SCALES.size,
+        condition: config => config.visConfig.enable3d
       }
+    };
+  }
+
+  getDefaultLayerConfig(props = {}) {
+    return {
+      ...super.getDefaultLayerConfig(props),
+
+      // add height visual channel
+      heightField: null,
+      heightDomain: [0, 1],
+      heightScale: 'linear',
+      heightRange: [0, 1000]
     };
   }
 
@@ -136,10 +162,10 @@ export default class S2GeometryLayer extends Layer {
       colorDomain,
       colorField,
       color,
-      sizeField,
-      sizeScale,
-      sizeDomain,
-      visConfig: {colorRange, enable3d, sizeRange}
+      heightField,
+      heightDomain,
+      heightScale,
+      visConfig: {colorRange, enable3d, heightRange}
     } = this.config;
 
     const {gpuFilter} = datasets[this.config.dataId];
@@ -152,7 +178,7 @@ export default class S2GeometryLayer extends Layer {
 
     // calculate elevation scale - if extruded = true
     const eScale =
-      sizeField && enable3d && this.getVisChannelScale(sizeScale, sizeDomain, sizeRange);
+      heightField && enable3d && this.getVisChannelScale(heightScale, heightDomain, heightRange);
 
     return {
       data,
@@ -161,7 +187,7 @@ export default class S2GeometryLayer extends Layer {
         ? d => this.getEncodedChannelValue(cScale, d.data, colorField)
         : () => color,
       getElevation: eScale
-        ? d => this.getEncodedChannelValue(eScale, d.data, sizeField, 0)
+        ? d => this.getEncodedChannelValue(eScale, d.data, heightField, 0)
         : () => DEFAULT_ELEVATION,
 
       getFilterValue: gpuFilter.filterValueAccessor()
@@ -186,9 +212,9 @@ export default class S2GeometryLayer extends Layer {
         colorScale: config.colorScale
       },
       getElevation: {
-        sizeField: config.sizeField,
-        sizeRange: visConfig.sizeRange,
-        sizeScale: config.sizeScale
+        heightField: config.heightField,
+        heightScaleType: config.heightScale,
+        heightRange: visConfig.heightRange
       },
       getFilterValue: gpuFilter.filterValueUpdateTriggers
     };
